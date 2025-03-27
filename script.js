@@ -10,7 +10,7 @@ function scanSerial() {
     return;
   }
 
-  var scriptURL = "https://script.google.com/macros/s/AKfycbxLSc2Ah8WdcpaMXlSt6xKJVugCOfIEj_FXty_J7JPqhmZ3ckAEvgcBjw7XfrsnSSgy/exec";
+  var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
 
   $.get(scriptURL, { serial: serialNumber }, function(response) {
     if (response === "Product Not Found") {
