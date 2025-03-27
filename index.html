@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispatch Item Scanner</title>
+  <link rel="stylesheet" href="styles.css"> <!-- External CSS file link -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="script.js" defer></script> <!-- External JS file link -->
+</head>
+<body>
+  <div class="container">
+    <h1>Dispatch Item Scanner</h1>
+    <p>Scan or enter the serial number to find the product name and update quantity directly in the table.</p>
+
+    <!-- SO Number Input -->
+    <div class="input-group">
+      <label for="sonumber">SO Number:</label>
+      <input type="text" id="sonumber" placeholder="Enter SO Number" />
+    </div>
+
+    <!-- Serial Number Input -->
+    <div class="input-group">
+      <label for="serial">Enter Serial Number:</label>
+      <input type="text" id="serial" placeholder="Scan or Enter Serial Number" autofocus />
+      <button onclick="scanSerial()">Search Product</button>
+    </div>
+
+    <div id="product-result"></div>
+
+    <!-- Scanned Items Table -->
+    <div class="scanned-items">
+      <h3>Scanned Items</h3>
+      <table id="scanned-items-table">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Serial Number</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="scanned-items-list"></tbody>
+      </table>
+    </div>
+
+    <button onclick="submitAll()">Submit All</button>
+  </div>
+</body>
+</html>
