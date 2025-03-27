@@ -55,10 +55,12 @@ button:hover {
 }
 
 /* Scanned Items Table */
-.scanned-items {
+.scanned-items-container {
   margin-top: 20px;
   width: 90%;
   max-width: 600px;
+  flex-grow: 1; /* Allow the table container to grow and take up remaining space */
+  overflow: auto; /* Enable scrolling if the table overflows */
 }
 
 table {
@@ -111,10 +113,12 @@ input[type="number"] {
     padding: 15px;
   }
 
-  .scanned-items {
+  .scanned-items-container {
     width: 100%;
     max-width: none;
     margin-top: 10px;
+    flex-grow: 1; /* Allow the table container to grow and take up remaining space */
+    overflow: auto;
   }
 
   table th, table td {
