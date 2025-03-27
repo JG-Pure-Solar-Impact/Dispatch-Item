@@ -4,20 +4,17 @@ body {
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
-}
-
-.container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
+  height: 100vh; /* Full height of the screen */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 h1 {
   text-align: center;
   color: #333;
+  margin-top: 20px;
 }
 
 p {
@@ -29,6 +26,8 @@ p {
 /* Input Groups */
 .input-group {
   margin-bottom: 15px;
+  width: 90%;
+  max-width: 600px;
 }
 
 input[type="text"], input[type="number"] {
@@ -47,6 +46,8 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: 100%; /* Ensure the button is wide on mobile */
+  font-size: 1rem;
 }
 
 button:hover {
@@ -56,6 +57,8 @@ button:hover {
 /* Scanned Items Table */
 .scanned-items {
   margin-top: 20px;
+  width: 90%;
+  max-width: 600px;
 }
 
 table {
@@ -74,37 +77,51 @@ input[type="number"] {
   width: 60px;
 }
 
-/* Mobile Responsive */
+/* Mobile Full-Screen Layout */
 @media (max-width: 600px) {
-  .container {
+  body {
+    background-color: #fff; /* Remove background color for full screen */
+    height: 100%; /* Full screen height */
     padding: 10px;
   }
 
   h1 {
     font-size: 1.5rem;
+    margin-top: 10px;
+  }
+
+  p {
+    font-size: 1rem;
+    margin-bottom: 10px;
   }
 
   .input-group {
     margin-bottom: 10px;
+    width: 100%;
+    max-width: none;
   }
 
   input[type="text"], input[type="number"] {
-    padding: 8px;
-    font-size: 1rem;
+    padding: 12px;
+    font-size: 1.2rem;
   }
 
   button {
+    font-size: 1.2rem;
+    padding: 15px;
+  }
+
+  .scanned-items {
     width: 100%;
-    font-size: 1rem;
-    padding: 12px;
+    max-width: none;
+    margin-top: 10px;
   }
 
   table th, table td {
-    font-size: 0.9rem;
-    padding: 8px;
+    font-size: 1rem;
+    padding: 10px;
   }
 
-  /* Scanned items quantity input */
   input[type="number"] {
     width: 50px;
   }
