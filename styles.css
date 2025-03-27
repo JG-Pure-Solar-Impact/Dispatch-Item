@@ -1,17 +1,18 @@
-/* General Styles */
+/* Global Styles */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f9;
+  background-color: #f4f4f4;
 }
 
 .container {
-  width: 80%;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
 }
 
 h1 {
@@ -19,66 +20,92 @@ h1 {
   color: #333;
 }
 
-.input-group {
-  margin: 20px 0;
+p {
+  text-align: center;
+  font-size: 1rem;
+  margin-bottom: 20px;
 }
 
-label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 8px;
+/* Input Groups */
+.input-group {
+  margin-bottom: 15px;
 }
 
 input[type="text"], input[type="number"] {
   width: 100%;
   padding: 10px;
-  font-size: 16px;
-  margin-bottom: 10px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
 }
 
 button {
+  padding: 10px 15px;
   background-color: #4CAF50;
   color: white;
-  padding: 10px 20px;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
 }
 
 button:hover {
   background-color: #45a049;
 }
 
+/* Scanned Items Table */
 .scanned-items {
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-table, th, td {
-  border: 1px solid #ddd;
+  margin-top: 10px;
 }
 
 th, td {
-  padding: 10px;
+  padding: 12px;
   text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
+  border: 1px solid #ddd;
 }
 
 input[type="number"] {
   width: 60px;
 }
 
-button {
-  padding: 5px 10px;
-}
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
 
-button:hover {
-  background-color: #e74c3c;
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .input-group {
+    margin-bottom: 10px;
+  }
+
+  input[type="text"], input[type="number"] {
+    padding: 8px;
+    font-size: 1rem;
+  }
+
+  button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  table th, table td {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  /* Scanned items quantity input */
+  input[type="number"] {
+    width: 50px;
+  }
 }
