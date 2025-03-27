@@ -80,7 +80,7 @@ input[type="number"] {
 }
 
 /* Mobile Full-Screen Layout */
-@media (max-width: 600px) {
+@media (max-width: 100%) {
   body {
     background-color: #fff; /* Remove background color for full screen */
     height: 100%; /* Full screen height */
