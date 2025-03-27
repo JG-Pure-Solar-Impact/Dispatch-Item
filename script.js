@@ -10,14 +10,20 @@ function scanSerial() {
     return;
   }
 
-  var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
+  var scriptURL = "https://script.google.com/macros/s/AKfycby96CLqLkw8tT9UdUl7estGo16gkvSZ3aC5Axktrc4R6xKDmWuDckH7FMkY5mqJrZVO/exec";
 
   $.get(scriptURL, { serial: serialNumber }, function(response) {
     if (response === "Product Not Found") {
       document.getElementById('product-result').innerHTML = response;
     } else {
       document.getElementById('product-result').innerHTML = "Product: " + response;
-      addToScannedItems(response, serialNumber);
+      // Ensure response is in the correct format: "Product Name - Full Serial Number"
+      var productDetails = response.split(" - ");
+      var productName = productDetails[0];
+      var fullSerial = productDetails[1];
+      
+      // Add to the scanned items table
+      addToScannedItems(productName, fullSerial);
       clearSerialField();  // Clear the serial number field after scanning
     }
   }).fail(function() {
@@ -27,14 +33,18 @@ function scanSerial() {
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
+  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
+  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
+
+  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
