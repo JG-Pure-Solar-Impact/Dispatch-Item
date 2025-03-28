@@ -27,6 +27,7 @@ function startScanner() {
     }, function(err) {
       if (err) {
         console.error("Error starting Quagga:", err);
+        alert("Error starting Quagga, please check camera permissions.");
         return;
       }
       Quagga.start(); // Start the scanner
@@ -180,16 +181,16 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);
+    }, 500);  // Wait for 500ms after typing before triggering search
   }
 });
 
 // Clear the serial number input field after scanning
 function clearSerialField() {
-  document.getElementById('serial').value = '';
+  document.getElementById('serial').value = '';  // Clear the serial number field
 }
 
 // Clear the SO number field after submission
 function clearSonumberField() {
-  document.getElementById('sonumber').value = '';
+  document.getElementById('sonumber').value = '';  // Clear the SO number field
 }
