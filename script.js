@@ -34,19 +34,16 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
-  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
   
-  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Match serial number pattern
   
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract product name
   } else {
-    // If no serial match is found, treat the whole response as a product name
-    productName = response;
+    productName = response; // If no serial match, treat the entire response as product name
   }
   
   return {
