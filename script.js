@@ -17,11 +17,12 @@ function scanSerial() {
       document.getElementById('product-result').innerHTML = response;
     } else {
       document.getElementById('product-result').innerHTML = "Product: " + response;
-      // Ensure response is in the correct format: "Product Name - Full Serial Number"
-      var productDetails = response.split(" - ");
-      var productName = productDetails[0];
-      var fullSerial = productDetails[1];
-      
+
+      // Fix for handling long product names and serial numbers
+      var productDetails = splitProductAndSerial(response);
+      var productName = productDetails.productName;
+      var fullSerial = productDetails.serialNumber;
+
       // Add to the scanned items table
       addToScannedItems(productName, fullSerial);
       clearSerialField();  // Clear the serial number field after scanning
@@ -29,6 +30,29 @@ function scanSerial() {
   }).fail(function() {
     alert("Error while fetching the product information.");
   });
+}
+
+// Function to split the product name and serial number correctly
+function splitProductAndSerial(response) {
+  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
+  var productName = "";
+  var fullSerial = "";
+  
+  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
+  
+  if (serialMatch) {
+    fullSerial = serialMatch[0];
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
+  } else {
+    // If no serial match is found, treat the whole response as a product name
+    productName = response;
+  }
+  
+  return {
+    productName: productName,
+    serialNumber: fullSerial
+  };
 }
 
 // Function to add scanned item to the list
