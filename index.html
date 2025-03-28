@@ -6,6 +6,7 @@
   <title>Dispatch Item Scanner</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 </head>
 <body>
   <div class="container">
@@ -44,6 +45,10 @@
     </div>
 
     <button onclick="submitAll()">Submit All</button>
+
+    <!-- Camera View for QR Code Scanning -->
+    <video id="scanner-video" width="300" height="300" style="border: 1px solid #ddd;"></video>
+    <canvas id="scanner-canvas" style="display:none;"></canvas>  <!-- Used for capturing frames -->
   </div>
 
   <script src="script.js"></script>
