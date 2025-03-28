@@ -34,48 +34,40 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
-  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
 
-  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
+  // Match everything that looks like a serial number
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/);
 
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim();
   } else {
-    // If no serial match is found, treat the whole response as a product name
     productName = response;
   }
 
-  return {
-    productName: productName,
-    serialNumber: fullSerial
-  };
+  return { productName: productName, serialNumber: fullSerial };
 }
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
-  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
-  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
 
-  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
 // Update the table with scanned items
 function updateScannedItemsTable() {
   var tableBody = document.getElementById('scanned-items-list');
-  tableBody.innerHTML = ""; // Clear previous table rows
+  tableBody.innerHTML = "";
 
   scannedItems.forEach(function(item, index) {
     var row = document.createElement('tr');
@@ -112,46 +104,24 @@ function submitAll() {
     return;
   }
 
-  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
     items: JSON.stringify(scannedItems)
   }, function(response) {
     alert("All items submitted successfully!");
-    scannedItems = [];  // Clear the scanned items list after submission
-    updateScannedItemsTable();  // Update the table to reflect cleared items
-    clearSonumberField();  // Clear the SO number field after submission
+    scannedItems = [];
+    updateScannedItemsTable();
+    clearSonumberField();
   }).fail(function() {
     alert("Error while submitting the items.");
   });
 }
 
-// Debounce input for serial number
-document.getElementById('serial').addEventListener('input', function() {
-  clearTimeout(debounceTimeout);
-  let serialNumber = this.value.trim();
-  if (serialNumber.length > 0) {
-    debounceTimeout = setTimeout(function() {
-      scanSerial();
-    }, 500);  // Wait for 500ms after typing before triggering search
-  }
-});
-
-// Clear the serial number input field after scanning
-function clearSerialField() {
-  document.getElementById('serial').value = '';  // Clear the serial number field
-}
-
-// Clear the SO number field after submission
-function clearSonumberField() {
-  document.getElementById('sonumber').value = '';  // Clear the SO number field
-}
-
-// Function to start the QR code scanner using the webcam
-function startQRScanner() {
-  var video = document.getElementById('preview');
-  var qrResultDisplay = document.getElementById('qr-result');
+// Function to start the barcode scanner using the webcam
+function startBarcodeScanner() {
+  var video = document.getElementById('barcode-preview');
+  var barcodeResultDisplay = document.getElementById('barcode-result');
   
   // Request permission to use the webcam
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -159,30 +129,33 @@ function startQRScanner() {
       video.srcObject = stream;
       video.setAttribute('playsinline', true);
       video.play();
-      requestAnimationFrame(scanQRCode);
+      Quagga.init({
+        inputStream: {
+          type: 'LiveStream',
+          target: video,
+          constraints: {
+            facingMode: 'environment'
+          }
+        },
+        decoder: {
+          readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
+        }
+      }, function(err) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function(data) {
+        barcodeResultDisplay.textContent = "Barcode Result: " + data.codeResult.code;
+        // Automatically process barcode data as serial number
+        document.getElementById('serial').value = data.codeResult.code;
+        scanSerial();  // Automatically trigger search after barcode scan
+      });
     })
     .catch(function(error) {
       alert("Could not access webcam: " + error.message);
     });
-  
-  // Scan QR code continuously
-  function scanQRCode() {
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      var canvas = document.createElement('canvas');
-      canvas.height = video.videoHeight;
-      canvas.width = video.videoWidth;
-      var context = canvas.getContext('2d');
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      var code = jsQR(imageData.data, canvas.width, canvas.height);
-
-      if (code) {
-        qrResultDisplay.textContent = "QR Code Result: " + code.data;
-        // Automatically process QR code data as serial number
-        document.getElementById('serial').value = code.data;
-        scanSerial();  // Automatically trigger search after QR code scan
-      }
-    }
-    requestAnimationFrame(scanQRCode);
-  }
 }
