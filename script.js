@@ -31,9 +31,14 @@ function startScanner() {
 
   // Event listener for when Quagga detects a barcode or QR code
   Quagga.onDetected(function(result) {
+    console.log("Barcode detected:", result); // Log the result for debugging
     var serialNumber = result.codeResult.code;
-    document.getElementById('serial').value = serialNumber;  // Update input field with the detected serial number
-    scanSerial();  // Call the scanSerial function to search product with this serial number
+    
+    // Update the serial number input with the detected barcode/QR
+    document.getElementById('serial').value = serialNumber;
+    
+    // Call scanSerial() to process the serial number
+    scanSerial();
   });
 }
 
@@ -54,6 +59,7 @@ function scanSerial() {
   var scriptURL = "https://script.google.com/macros/s/AKfycby96CLqLkw8tT9UdUl7estGo16gkvSZ3aC5Axktrc4R6xKDmWuDckH7FMkY5mqJrZVO/exec";
 
   $.get(scriptURL, { serial: serialNumber }, function(response) {
+    console.log("Product search result:", response);  // Log the response for debugging
     if (response === "Product Not Found") {
       document.getElementById('product-result').innerHTML = response;
     } else {
