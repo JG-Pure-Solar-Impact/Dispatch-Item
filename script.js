@@ -3,56 +3,48 @@ var debounceTimeout;
 
 // Function to initialize QuaggaJS and start the barcode scanning
 function startScanner() {
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    console.log("Camera access granted!");
-
-    // Initialize Quagga with barcode reader options
-    Quagga.init({
-      inputStream: {
-        type: "LiveStream",
-        target: document.getElementById('barcode-preview'), // Video element to show the stream
-        constraints: {
-          facingMode: "environment" // Use back camera on mobile (if available)
-        }
-      },
-      decoder: {
-        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and various barcode types
-      },
-      locate: true,
-      numOfWorkers: 4,
-      debug: {
-        drawBoundingBox: true, // Show bounding box for detected barcode
-        showFrequency: true,
+  Quagga.init({
+    inputStream: {
+      type: "LiveStream",  // Use live video stream
+      target: document.getElementById('barcode-preview'), // Video element to show the stream
+      constraints: {
+        facingMode: "environment" // Use back camera on mobile
       }
-    }, function(err) {
-      if (err) {
-        console.error("Error starting Quagga:", err);
-        alert("Error starting Quagga, please check camera permissions.");
-        return;
-      }
-      Quagga.start(); // Start the scanner
-      console.log("Quagga is now running");
+    },
+    decoder: {
+      readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and barcodes
+    },
+    locate: true,
+    numOfWorkers: 4,
+    debug: {
+      drawBoundingBox: true, // Show bounding box for detected barcode
+      showFrequency: true,
+    }
+  }, function(err) {
+    if (err) {
+      console.log("Error starting Quagga: " + err);
+      return;
+    }
+    Quagga.start(); // Start the scanner
+    console.log("Quagga is now running");
+  });
 
-      // Event listener for when Quagga detects a barcode or QR code
-      Quagga.onDetected(function(result) {
-        console.log("Barcode detected:", result); // Log the result for debugging
-        var serialNumber = result.codeResult.code;
-        
-        // Update the serial number input with the detected barcode/QR
-        document.getElementById('serial').value = serialNumber;
-        
-        // Call scanSerial() to process the serial number
-        scanSerial();
-      });
-    });
-  } else {
-    alert("Your device does not support camera access.");
-  }
+  // Event listener for when Quagga detects a barcode or QR code
+  Quagga.onDetected(function(result) {
+    console.log("Barcode detected:", result); // Log the result for debugging
+    var serialNumber = result.codeResult.code;
+    
+    // Update the serial number input with the detected barcode/QR
+    document.getElementById('serial').value = serialNumber;
+    
+    // Call scanSerial() to process the serial number
+    scanSerial();
+  });
 }
 
 // Start the scanner when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-  startScanner();  // Start the scanner on page load
+  startScanner();
 });
 
 // Function to handle scanning or entering a serial number
@@ -181,7 +173,7 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);  // Wait for 500ms after typing before triggering search
+    }, 500);
   }
 });
 
