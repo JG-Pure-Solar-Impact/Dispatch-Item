@@ -1,7 +1,43 @@
 var scannedItems = []; // Array to hold scanned items
 var debounceTimeout;
-var qrScanner; // QR Scanner instance
-var isScannerActive = false; // Flag to keep track of QR scanner status
+
+// Function to start QR scanning
+function startScanner() {
+  var qrScannerDiv = document.getElementById('qr-scanner');
+  var serialField = document.getElementById('serial');
+  var qrReader = new Html5Qrcode("qr-reader");
+
+  qrScannerDiv.style.display = 'block'; // Show the QR scanner
+  serialField.style.display = 'none';  // Hide the manual serial number input field
+
+  // Start scanning the QR code with the mobile camera
+  qrReader.start(
+    { facingMode: "environment" }, // Use back camera
+    {
+      fps: 10, // Frame rate
+      qrbox: 250, // Scanner box size
+    },
+    function(decodedText, decodedResult) {
+      // When a QR code is scanned, pass the scanned text (serial number) to the scanSerial function
+      serialField.value = decodedText;  // Set scanned serial number to input field
+      scanSerial();  // Call the existing scanSerial function to process the serial number
+      qrReader.stop();  // Stop scanning once the barcode is found
+      qrScannerDiv.style.display = 'none';  // Hide the QR scanner
+      serialField.style.display = 'block';  // Show the manual serial number input field
+    },
+    function(errorMessage) {
+      console.log(errorMessage);  // Log any scanning error
+    }
+  );
+}
+
+// Function to stop QR scanning
+function stopScanner() {
+  var qrReader = new Html5Qrcode("qr-reader");
+  qrReader.stop();  // Stop the scanner
+  document.getElementById('qr-scanner').style.display = 'none';  // Hide the QR scanner
+  document.getElementById('serial').style.display = 'block';  // Show the manual serial number input field
+}
 
 // Function to handle scanning or entering a serial number
 function scanSerial() {
@@ -38,16 +74,16 @@ function scanSerial() {
 function splitProductAndSerial(response) {
   var productName = "";
   var fullSerial = "";
-
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Match serial number pattern
-
+  
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/);
+  
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract product name
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim();
   } else {
-    productName = response; // If no serial match, treat the entire response as product name
+    productName = response;
   }
-
+  
   return {
     productName: productName,
     serialNumber: fullSerial
@@ -56,18 +92,14 @@ function splitProductAndSerial(response) {
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
-  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
-  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
-
-  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
@@ -111,16 +143,15 @@ function submitAll() {
     return;
   }
 
-  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
     items: JSON.stringify(scannedItems)
   }, function(response) {
     alert("All items submitted successfully!");
-    scannedItems = [];  // Clear the scanned items list after submission
-    updateScannedItemsTable();  // Update the table to reflect cleared items
-    clearSonumberField();  // Clear the SO number field after submission
+    scannedItems = [];
+    updateScannedItemsTable();
+    clearSonumberField();
   }).fail(function() {
     alert("Error while submitting the items.");
   });
@@ -133,45 +164,16 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);  // Wait for 500ms after typing before triggering search
+    }, 500);
   }
 });
 
 // Clear the serial number input field after scanning
 function clearSerialField() {
-  document.getElementById('serial').value = '';  // Clear the serial number field
+  document.getElementById('serial').value = '';
 }
 
 // Clear the SO number field after submission
 function clearSonumberField() {
-  document.getElementById('sonumber').value = '';  // Clear the SO number field
-}
-
-// Start or stop QR Scanner when clicked
-function toggleQRScanner() {
-  var scannerElement = document.getElementById('qr-reader');
-  if (isScannerActive) {
-    qrScanner.stop();  // Stop the scanner if it's already active
-    document.getElementById('qr-reader').style.display = "none";
-    document.getElementById('qr-result').innerText = '';
-    isScannerActive = false;
-  } else {
-    qrScanner = new Html5QrcodeScanner(scannerElement, { fps: 10, qrbox: 250 });
-    qrScanner.render(onQRCodeScanned, onErrorOccurred);
-    document.getElementById('qr-reader').style.display = "block";
-    isScannerActive = true;
-  }
-}
-
-// Handle QR code scan result
-function onQRCodeScanned(qrCodeMessage) {
-  // Use the scanned QR code to perform the same process as manually entering the serial number
-  document.getElementById('serial').value = qrCodeMessage;
-  scanSerial();  // Automatically call the scanSerial function to search for the product
-}
-
-// Handle QR scanner error
-function onErrorOccurred(errorMessage) {
-  // Handle any error that occurred during scanning
-  console.log("Error in QR code scanning:", errorMessage);
+  document.getElementById('sonumber').value = '';
 }
