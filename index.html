@@ -6,7 +6,6 @@
   <title>Dispatch Item Scanner</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -28,14 +27,6 @@
 
     <div id="product-result"></div>
 
-    <!-- Barcode Scanner Section -->
-    <div class="input-group">
-      <label for="barcodescanner">Scan Barcode (Code-128, etc.):</label>
-      <button onclick="startBarcodeScanner()">Start Barcode Scanner</button>
-      <video id="barcode-preview" width="300" height="200" style="border: 1px solid black;"></video>
-      <p id="barcode-result">Barcode Result will appear here.</p>
-    </div>
-
     <!-- Scanned Items Table -->
     <div class="scanned-items">
       <h3>Scanned Items</h3>
@@ -53,6 +44,10 @@
     </div>
 
     <button onclick="submitAll()">Submit All</button>
+
+    <!-- Video element for barcode scanning -->
+    <video id="barcode-preview" style="width: 100%; height: auto; border: 1px solid black;"></video>
+
   </div>
 
   <script src="script.js"></script>
