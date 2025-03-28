@@ -34,40 +34,48 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
+  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
-
-  // Match everything that looks like a serial number
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/);
-
+  
+  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
+  
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim();
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
   } else {
+    // If no serial match is found, treat the whole response as a product name
     productName = response;
   }
-
-  return { productName: productName, serialNumber: fullSerial };
+  
+  return {
+    productName: productName,
+    serialNumber: fullSerial
+  };
 }
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
+  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
+  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
 
+  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
 // Update the table with scanned items
 function updateScannedItemsTable() {
   var tableBody = document.getElementById('scanned-items-list');
-  tableBody.innerHTML = "";
+  tableBody.innerHTML = ""; // Clear previous table rows
 
   scannedItems.forEach(function(item, index) {
     var row = document.createElement('tr');
@@ -104,58 +112,91 @@ function submitAll() {
     return;
   }
 
+  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
     items: JSON.stringify(scannedItems)
   }, function(response) {
     alert("All items submitted successfully!");
-    scannedItems = [];
-    updateScannedItemsTable();
-    clearSonumberField();
+    scannedItems = [];  // Clear the scanned items list after submission
+    updateScannedItemsTable();  // Update the table to reflect cleared items
+    clearSonumberField();  // Clear the SO number field after submission
   }).fail(function() {
     alert("Error while submitting the items.");
   });
 }
 
-// Function to start the barcode scanner using the webcam
+// Debounce input for serial number
+document.getElementById('serial').addEventListener('input', function() {
+  clearTimeout(debounceTimeout);
+  let serialNumber = this.value.trim();
+  if (serialNumber.length > 0) {
+    debounceTimeout = setTimeout(function() {
+      scanSerial();
+    }, 500);  // Wait for 500ms after typing before triggering search
+  }
+});
+
+// Clear the serial number input field after scanning
+function clearSerialField() {
+  document.getElementById('serial').value = '';  // Clear the serial number field
+}
+
+// Clear the SO number field after submission
+function clearSonumberField() {
+  document.getElementById('sonumber').value = '';  // Clear the SO number field
+}
+
+// Start barcode scanner and access the camera
 function startBarcodeScanner() {
   var video = document.getElementById('barcode-preview');
-  var barcodeResultDisplay = document.getElementById('barcode-result');
-  
-  // Request permission to use the webcam
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(function(stream) {
-      video.srcObject = stream;
-      video.setAttribute('playsinline', true);
-      video.play();
-      Quagga.init({
-        inputStream: {
-          type: 'LiveStream',
-          target: video,
-          constraints: {
-            facingMode: 'environment'
-          }
-        },
-        decoder: {
-          readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
-        }
-      }, function(err) {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        Quagga.start();
-      });
 
-      Quagga.onDetected(function(data) {
-        barcodeResultDisplay.textContent = "Barcode Result: " + data.codeResult.code;
-        // Automatically process barcode data as serial number
-        document.getElementById('serial').value = data.codeResult.code;
-        scanSerial();  // Automatically trigger search after barcode scan
-      });
-    })
-    .catch(function(error) {
-      alert("Could not access webcam: " + error.message);
+  // Request permission to use the webcam
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'environment' } // Use rear camera
+  })
+  .then(function(stream) {
+    video.srcObject = stream;
+    video.setAttribute('playsinline', true);  // For iPhone (important)
+    video.play();
+
+    // Initialize QuaggaJS with the video stream
+    Quagga.init({
+      inputStream: {
+        type: 'LiveStream',
+        target: video,  // Specify the video element
+        constraints: {
+          facingMode: 'environment',  // Use the rear camera (if available)
+        }
+      },
+      decoder: {
+        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
+      }
+    }, function(err) {
+      if (err) {
+        console.error("QuaggaJS initialization error:", err);
+        return;
+      }
+      Quagga.start();  // Start the barcode scanner
     });
+
+    // Listen for barcode detection
+    Quagga.onDetected(function(data) {
+      document.getElementById('barcode-result').textContent = "Barcode Result: " + data.codeResult.code;
+
+      // Automatically process barcode data as serial number
+      document.getElementById('serial').value = data.codeResult.code;
+      scanSerial();  // Automatically trigger search after barcode scan
+    });
+  })
+  .catch(function(error) {
+    console.error("Camera access error:", error);
+    alert("Error accessing camera: " + error.message);
+  });
 }
+
+// Start barcode scanning on page load
+window.onload = function() {
+  startBarcodeScanner();
+};
