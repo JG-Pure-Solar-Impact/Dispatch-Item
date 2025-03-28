@@ -1,52 +1,6 @@
 var scannedItems = []; // Array to hold scanned items
 var debounceTimeout;
 
-// Function to initialize QuaggaJS and start the barcode scanning
-function startScanner() {
-  Quagga.init({
-    inputStream: {
-      type: "LiveStream",  // Use live video stream
-      target: document.getElementById('barcode-preview'), // Video element to show the stream
-      constraints: {
-        facingMode: "environment" // Use back camera on mobile
-      }
-    },
-    decoder: {
-      readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and barcodes
-    },
-    locate: true,
-    numOfWorkers: 4,
-    debug: {
-      drawBoundingBox: true, // Show bounding box for detected barcode
-      showFrequency: true,
-    }
-  }, function(err) {
-    if (err) {
-      console.log("Error starting Quagga: " + err);
-      return;
-    }
-    Quagga.start(); // Start the scanner
-    console.log("Quagga is now running");
-  });
-
-  // Event listener for when Quagga detects a barcode or QR code
-  Quagga.onDetected(function(result) {
-    console.log("Barcode detected:", result); // Log the result for debugging
-    var serialNumber = result.codeResult.code;
-    
-    // Update the serial number input with the detected barcode/QR
-    document.getElementById('serial').value = serialNumber;
-    
-    // Call scanSerial() to process the serial number
-    scanSerial();
-  });
-}
-
-// Start the scanner when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-  startScanner();
-});
-
 // Function to handle scanning or entering a serial number
 function scanSerial() {
   var serialNumber = document.getElementById('serial').value.trim();
@@ -80,18 +34,21 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
+  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
-
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/);
-
+  
+  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
+  
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim();
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
   } else {
+    // If no serial match is found, treat the whole response as a product name
     productName = response;
   }
-
+  
   return {
     productName: productName,
     serialNumber: fullSerial
@@ -100,15 +57,18 @@ function splitProductAndSerial(response) {
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
+  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
+  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
 
+  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
@@ -152,6 +112,7 @@ function submitAll() {
     return;
   }
 
+  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
@@ -159,7 +120,7 @@ function submitAll() {
   }, function(response) {
     alert("All items submitted successfully!");
     scannedItems = [];  // Clear the scanned items list after submission
-    updateScannedItemsTable();
+    updateScannedItemsTable();  // Update the table to reflect cleared items
     clearSonumberField();  // Clear the SO number field after submission
   }).fail(function() {
     alert("Error while submitting the items.");
@@ -173,7 +134,7 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);
+    }, 500);  // Wait for 500ms after typing before triggering search
   }
 });
 
