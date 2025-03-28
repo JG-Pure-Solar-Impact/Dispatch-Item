@@ -1,6 +1,47 @@
 var scannedItems = []; // Array to hold scanned items
 var debounceTimeout;
 
+// Function to initialize QuaggaJS and start the barcode scanning
+function startScanner() {
+  Quagga.init({
+    inputStream: {
+      type: "LiveStream",  // Use live video stream
+      target: document.getElementById('barcode-preview'), // Video element to show the stream
+      constraints: {
+        facingMode: "environment" // Use back camera on mobile
+      }
+    },
+    decoder: {
+      readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and barcodes
+    },
+    locate: true,
+    numOfWorkers: 4,
+    debug: {
+      drawBoundingBox: true, // Show bounding box for detected barcode
+      showFrequency: true,
+    }
+  }, function(err) {
+    if (err) {
+      console.log("Error starting Quagga: " + err);
+      return;
+    }
+    Quagga.start(); // Start the scanner
+    console.log("Quagga is now running");
+  });
+
+  // Event listener for when Quagga detects a barcode or QR code
+  Quagga.onDetected(function(result) {
+    var serialNumber = result.codeResult.code;
+    document.getElementById('serial').value = serialNumber;  // Update input field with the detected serial number
+    scanSerial();  // Call the scanSerial function to search product with this serial number
+  });
+}
+
+// Start the scanner when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  startScanner();
+});
+
 // Function to handle scanning or entering a serial number
 function scanSerial() {
   var serialNumber = document.getElementById('serial').value.trim();
@@ -34,21 +75,18 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
-  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
-  
-  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
-  var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
-  
+
+  var serialMatch = response.match(/([A-Za-z0-9-]+)$/);
+
   if (serialMatch) {
     fullSerial = serialMatch[0];
-    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
+    productName = response.slice(0, response.lastIndexOf(fullSerial)).trim();
   } else {
-    // If no serial match is found, treat the whole response as a product name
     productName = response;
   }
-  
+
   return {
     productName: productName,
     serialNumber: fullSerial
@@ -57,18 +95,15 @@ function splitProductAndSerial(response) {
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
-  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
-  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
 
-  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
@@ -112,7 +147,6 @@ function submitAll() {
     return;
   }
 
-  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
@@ -120,7 +154,7 @@ function submitAll() {
   }, function(response) {
     alert("All items submitted successfully!");
     scannedItems = [];  // Clear the scanned items list after submission
-    updateScannedItemsTable();  // Update the table to reflect cleared items
+    updateScannedItemsTable();
     clearSonumberField();  // Clear the SO number field after submission
   }).fail(function() {
     alert("Error while submitting the items.");
@@ -134,7 +168,7 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);  // Wait for 500ms after typing before triggering search
+    }, 500);
   }
 });
 
@@ -147,56 +181,3 @@ function clearSerialField() {
 function clearSonumberField() {
   document.getElementById('sonumber').value = '';  // Clear the SO number field
 }
-
-// Start barcode scanner and access the camera
-function startBarcodeScanner() {
-  var video = document.getElementById('barcode-preview');
-
-  // Request permission to use the webcam
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'environment' } // Use rear camera
-  })
-  .then(function(stream) {
-    video.srcObject = stream;
-    video.setAttribute('playsinline', true);  // For iPhone (important)
-    video.play();
-
-    // Initialize QuaggaJS with the video stream
-    Quagga.init({
-      inputStream: {
-        type: 'LiveStream',
-        target: video,  // Specify the video element
-        constraints: {
-          facingMode: 'environment',  // Use the rear camera (if available)
-        }
-      },
-      decoder: {
-        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader"]
-      }
-    }, function(err) {
-      if (err) {
-        console.error("QuaggaJS initialization error:", err);
-        return;
-      }
-      Quagga.start();  // Start the barcode scanner
-    });
-
-    // Listen for barcode detection
-    Quagga.onDetected(function(data) {
-      document.getElementById('barcode-result').textContent = "Barcode Result: " + data.codeResult.code;
-
-      // Automatically process barcode data as serial number
-      document.getElementById('serial').value = data.codeResult.code;
-      scanSerial();  // Automatically trigger search after barcode scan
-    });
-  })
-  .catch(function(error) {
-    console.error("Camera access error:", error);
-    alert("Error accessing camera: " + error.message);
-  });
-}
-
-// Start barcode scanning on page load
-window.onload = function() {
-  startBarcodeScanner();
-};
