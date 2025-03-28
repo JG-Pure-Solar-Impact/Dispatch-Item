@@ -6,6 +6,7 @@
   <title>Dispatch Item Scanner</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script> <!-- QR Code Scanner Library -->
 </head>
 <body>
   <div class="container">
@@ -26,6 +27,12 @@
     </div>
 
     <div id="product-result"></div>
+
+    <!-- QR/Barcode Scanner Section -->
+    <div class="qr-scanner">
+      <button onclick="startQRCodeScanner()">Start QR/Barcode Scanner</button>
+      <div id="qr-reader" style="width: 300px; height: 300px; display: none;"></div>
+    </div>
 
     <!-- Scanned Items Table -->
     <div class="scanned-items">
