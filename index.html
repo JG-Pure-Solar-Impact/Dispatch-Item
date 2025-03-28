@@ -28,6 +28,14 @@
 
     <div id="product-result"></div>
 
+    <!-- QR Code Scanner Section -->
+    <div class="input-group">
+      <label for="qrscanner">Scan QR Code:</label>
+      <button onclick="startQRScanner()">Start QR Scanner</button>
+      <video id="preview" width="300" height="200" style="border: 1px solid black;"></video>
+      <p id="qr-result">QR Code Result will appear here.</p>
+    </div>
+
     <!-- Scanned Items Table -->
     <div class="scanned-items">
       <h3>Scanned Items</h3>
@@ -45,10 +53,6 @@
     </div>
 
     <button onclick="submitAll()">Submit All</button>
-
-    <!-- Camera View for QR Code Scanning -->
-    <video id="scanner-video" width="300" height="300" style="border: 1px solid #ddd;"></video>
-    <canvas id="scanner-canvas" style="display:none;"></canvas>  <!-- Used for capturing frames -->
   </div>
 
   <script src="script.js"></script>
