@@ -6,7 +6,7 @@
   <title>Dispatch Item Scanner</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -28,12 +28,12 @@
 
     <div id="product-result"></div>
 
-    <!-- QR Code Scanner Section -->
+    <!-- Barcode Scanner Section -->
     <div class="input-group">
-      <label for="qrscanner">Scan QR Code:</label>
-      <button onclick="startQRScanner()">Start QR Scanner</button>
-      <video id="preview" width="300" height="200" style="border: 1px solid black;"></video>
-      <p id="qr-result">QR Code Result will appear here.</p>
+      <label for="barcodescanner">Scan Barcode (Code-128, etc.):</label>
+      <button onclick="startBarcodeScanner()">Start Barcode Scanner</button>
+      <video id="barcode-preview" width="300" height="200" style="border: 1px solid black;"></video>
+      <p id="barcode-result">Barcode Result will appear here.</p>
     </div>
 
     <!-- Scanned Items Table -->
