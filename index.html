@@ -6,7 +6,6 @@
   <title>Dispatch Item Scanner</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script> <!-- QR Scanner Library -->
 </head>
 <body>
   <div class="container">
@@ -24,12 +23,6 @@
       <label for="serial">Enter Serial Number:</label>
       <input type="text" id="serial" placeholder="Scan or Enter Serial Number" autofocus />
       <button onclick="scanSerial()">Search Product</button>
-    </div>
-
-    <!-- QR Scanner Section (Initially hidden) -->
-    <div id="qr-scanner" style="display:none;">
-      <div id="qr-reader" width="100%"></div>
-      <button onclick="stopScanner()">Stop Scanner</button>
     </div>
 
     <div id="product-result"></div>
@@ -51,7 +44,6 @@
     </div>
 
     <button onclick="submitAll()">Submit All</button>
-    <button onclick="startScanner()">Start QR Scanner</button> <!-- Button to start QR scanning -->
   </div>
 
   <script src="script.js"></script>
