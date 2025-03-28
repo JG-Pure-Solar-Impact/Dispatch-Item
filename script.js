@@ -6,16 +6,17 @@ function startScanner() {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     console.log("Camera access granted!");
 
+    // Initialize Quagga with barcode reader options
     Quagga.init({
       inputStream: {
-        type: "LiveStream",  // Use live video stream
+        type: "LiveStream",
         target: document.getElementById('barcode-preview'), // Video element to show the stream
         constraints: {
-          facingMode: "environment" // Use back camera on mobile
+          facingMode: "environment" // Use back camera on mobile (if available)
         }
       },
       decoder: {
-        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and barcodes
+        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "upc_reader", "upc_e_reader", "code_39_reader", "itf_reader", "qr_reader"] // Enable QR and various barcode types
       },
       locate: true,
       numOfWorkers: 4,
@@ -50,7 +51,7 @@ function startScanner() {
 
 // Start the scanner when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-  startScanner();
+  startScanner();  // Start the scanner on page load
 });
 
 // Function to handle scanning or entering a serial number
@@ -65,7 +66,6 @@ function scanSerial() {
   var scriptURL = "https://script.google.com/macros/s/AKfycby96CLqLkw8tT9UdUl7estGo16gkvSZ3aC5Axktrc4R6xKDmWuDckH7FMkY5mqJrZVO/exec";
 
   $.get(scriptURL, { serial: serialNumber }, function(response) {
-    console.log("Product search result:", response);  // Log the response for debugging
     if (response === "Product Not Found") {
       document.getElementById('product-result').innerHTML = response;
     } else {
@@ -186,10 +186,10 @@ document.getElementById('serial').addEventListener('input', function() {
 
 // Clear the serial number input field after scanning
 function clearSerialField() {
-  document.getElementById('serial').value = '';  // Clear the serial number field
+  document.getElementById('serial').value = '';
 }
 
 // Clear the SO number field after submission
 function clearSonumberField() {
-  document.getElementById('sonumber').value = '';  // Clear the SO number field
+  document.getElementById('sonumber').value = '';
 }
