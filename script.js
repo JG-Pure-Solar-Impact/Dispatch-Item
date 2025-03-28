@@ -1,8 +1,5 @@
 var scannedItems = []; // Array to hold scanned items
 var debounceTimeout;
-var video = document.getElementById('scanner-video');
-var canvas = document.getElementById('scanner-canvas');
-var context = canvas.getContext('2d');
 
 // Function to handle scanning or entering a serial number
 function scanSerial() {
@@ -37,15 +34,18 @@ function scanSerial() {
 
 // Function to split the product name and serial number correctly
 function splitProductAndSerial(response) {
+  // Assuming the serial number is typically at the end and starts with a digit or alphanumeric pattern.
   var productName = "";
   var fullSerial = "";
 
+  // Match everything that looks like a serial number (we assume serial numbers are alphanumeric and end with that)
   var serialMatch = response.match(/([A-Za-z0-9-]+)$/); // Matching the serial number pattern (alphanumeric + dashes)
-  
+
   if (serialMatch) {
     fullSerial = serialMatch[0];
     productName = response.slice(0, response.lastIndexOf(fullSerial)).trim(); // Extract everything before the serial number
   } else {
+    // If no serial match is found, treat the whole response as a product name
     productName = response;
   }
 
@@ -57,15 +57,18 @@ function splitProductAndSerial(response) {
 
 // Function to add scanned item to the list
 function addToScannedItems(productName, serialNumber) {
+  // Check if the serial number has already been scanned
   var existingItem = scannedItems.find(item => item.serialNumber === serialNumber);
   if (existingItem) {
     alert("This serial number has already been scanned.");
     return;
   }
 
+  // Add the item to the scanned items array
   var item = { productName: productName, serialNumber: serialNumber, quantity: 1 };
   scannedItems.push(item);
 
+  // Update the table with the newly added item
   updateScannedItemsTable();
 }
 
@@ -109,15 +112,16 @@ function submitAll() {
     return;
   }
 
+  // Send all scanned items to Apps Script for processing
   var scriptURL = "https://script.google.com/macros/s/AKfycbwEA2Bl97VGfQomNHTPS1NjMc3yaPHYr9EcnRO-14t2aCnCd9QBsiRnfD91CNMhB7mX/exec";
   $.post(scriptURL, {
     sonumber: sonumber,
     items: JSON.stringify(scannedItems)
   }, function(response) {
     alert("All items submitted successfully!");
-    scannedItems = [];
-    updateScannedItemsTable();
-    clearSonumberField();
+    scannedItems = [];  // Clear the scanned items list after submission
+    updateScannedItemsTable();  // Update the table to reflect cleared items
+    clearSonumberField();  // Clear the SO number field after submission
   }).fail(function() {
     alert("Error while submitting the items.");
   });
@@ -130,54 +134,55 @@ document.getElementById('serial').addEventListener('input', function() {
   if (serialNumber.length > 0) {
     debounceTimeout = setTimeout(function() {
       scanSerial();
-    }, 500);
+    }, 500);  // Wait for 500ms after typing before triggering search
   }
 });
 
 // Clear the serial number input field after scanning
 function clearSerialField() {
-  document.getElementById('serial').value = '';
+  document.getElementById('serial').value = '';  // Clear the serial number field
 }
 
 // Clear the SO number field after submission
 function clearSonumberField() {
-  document.getElementById('sonumber').value = '';
+  document.getElementById('sonumber').value = '';  // Clear the SO number field
 }
 
-// Start the camera and begin scanning QR/Barcode
-function startScanner() {
-  if (navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(function(stream) {
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        video.play();
-        scanQRCode();
-      }).catch(function(err) {
-        console.log("Error accessing camera: " + err);
-      });
-  }
-}
-
-// Function to scan QR/Barcode from the video feed
-function scanQRCode() {
-  setInterval(function() {
+// Function to start the QR code scanner using the webcam
+function startQRScanner() {
+  var video = document.getElementById('preview');
+  var qrResultDisplay = document.getElementById('qr-result');
+  
+  // Request permission to use the webcam
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(function(stream) {
+      video.srcObject = stream;
+      video.setAttribute('playsinline', true);
+      video.play();
+      requestAnimationFrame(scanQRCode);
+    })
+    .catch(function(error) {
+      alert("Could not access webcam: " + error.message);
+    });
+  
+  // Scan QR code continuously
+  function scanQRCode() {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      var canvas = document.createElement('canvas');
       canvas.height = video.videoHeight;
       canvas.width = video.videoWidth;
+      var context = canvas.getContext('2d');
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       var code = jsQR(imageData.data, canvas.width, canvas.height);
-      
+
       if (code) {
+        qrResultDisplay.textContent = "QR Code Result: " + code.data;
+        // Automatically process QR code data as serial number
         document.getElementById('serial').value = code.data;
-        scanSerial();  // Trigger the scan function to process the serial number
+        scanSerial();  // Automatically trigger search after QR code scan
       }
     }
-  }, 500);
+    requestAnimationFrame(scanQRCode);
+  }
 }
-
-// Start the scanner when the page is ready
-startScanner();
- 
